@@ -1,0 +1,44 @@
+---
+
+- name: Install docker-compose pip
+  pip:
+    name: docker-compose
+    state: present
+  tags:
+    - always
+
+- name: Ensure project directory exists
+  file:
+    path: "{{ project_dir }}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+  tags:
+    - always
+
+- name: Deploy docker-compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ project_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0600"
+  tags:
+    - configure
+
+- name: Deploy docker container
+  docker_compose:
+    project_src: "{{ project_dir }}"
+    state: present
+  register: output
+  tags:
+    - deploy
+
+- name: Update docker container
+  docker_compose:
+    project_src: "{{ project_dir }}"
+    pull: true
+    state: present
+  tags:
+    - update
